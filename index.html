@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JARVIS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-[#0d1117] text-[#58a6ff] p-6 font-mono">
+    <div class="border-b border-gray-700 pb-2 mb-4 text-xs opacity-50">SYSTEM: ONLINE</div>
+    <div id="chat-box" class="h-80 overflow-y-auto space-y-2 text-sm">
+        <p>Jarvis: Standing by for commands, Sir.</p>
+    </div>
+    <div class="mt-4 flex gap-2">
+        <input type="text" id="userInput" placeholder="Command..." class="bg-gray-900 border border-gray-700 rounded p-2 flex-1 text-white">
+        <button onclick="sendMessage()" class="bg-blue-600 text-white px-4 rounded">Send</button>
+    </div>
+
+    <script>
+        // CORRECT API KEY INSERTED BELOW
+        const API_KEY = "AIzaSyC1nKploi-di4P2Kin_N7C2OylzitrZsvk"; 
+
+        async function sendMessage() {
+            const input = document.getElementById('userInput');
+            const box = document.getElementById('chat-box');
+            if(!input.value) return;
+
+            box.innerHTML += `<p class="text-green-400">You: ${input.value}</p>`;
+            
+            try {
+                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ contents: [{ parts: [{ text: "You are JARVIS. Be witty. Call me Sir. Answer: " + input.value }] }] })
+                });
+                const data = await res.json();
+                box.innerHTML += `<p>Jarvis: ${data.candidates[0].content.parts[0].text}</p>`;
+            } catch (e) {
+                box.innerHTML += `<p class="text-red-500">Error: Check API Key in Google AI Studio.</p>`;
+            }
+            input.value = "";
+            box.scrollTop = box.scrollHeight;
+        }
+    </script>
+</body>
+</html>
