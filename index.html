@@ -7,18 +7,28 @@
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-[#0d1117] text-[#58a6ff] p-6 font-mono">
-    <div class="border-b border-gray-700 pb-2 mb-4 text-xs opacity-50">SYSTEM: ONLINE</div>
-    <div id="chat-box" class="h-80 overflow-y-auto space-y-2 text-sm">
-        <p>Jarvis: Standing by for commands, Sir.</p>
+    <div class="border-b border-gray-700 pb-2 mb-4 flex justify-between">
+        <span class="text-xs opacity-50">SYSTEM: ONLINE</span>
+        <button onclick="updateKey()" class="text-[10px] text-gray-500 underline">Update Key</button>
     </div>
+    
+    <div id="chat-box" class="h-80 overflow-y-auto space-y-2 text-sm">
+        <p>Jarvis: System ready. Awaiting your orders, Sir.</p>
+    </div>
+
     <div class="mt-4 flex gap-2">
-        <input type="text" id="userInput" placeholder="Command..." class="bg-gray-900 border border-gray-700 rounded p-2 flex-1 text-white">
-        <button onclick="sendMessage()" class="bg-blue-600 text-white px-4 rounded">Send</button>
+        <input type="text" id="userInput" placeholder="Command..." class="bg-gray-900 border border-gray-700 rounded p-2 flex-1 text-white text-sm outline-none">
+        <button onclick="sendMessage()" class="bg-blue-600 text-white px-4 py-2 rounded text-sm active:scale-95">Send</button>
     </div>
 
     <script>
-        // CORRECT API KEY INSERTED BELOW
-        const API_KEY = "AIzaSyC1nKploi-di4P2Kin_N7C2OylzitrZsvk"; 
+        // PASTE YOUR KEY HERE ONE LAST TIME
+        let API_KEY = "AIzaSyDl596PUvkq83vLsTsdFlAhUaPQWTSY..."; 
+
+        function updateKey() {
+            const newKey = prompt("Sir, please paste your new API Key here:");
+            if(newKey) API_KEY = newKey;
+        }
 
         async function sendMessage() {
             const input = document.getElementById('userInput');
@@ -26,19 +36,25 @@
             if(!input.value) return;
 
             box.innerHTML += `<p class="text-green-400">You: ${input.value}</p>`;
+            const promptText = input.value;
+            input.value = "";
+            box.scrollTop = box.scrollHeight;
             
             try {
                 const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ contents: [{ parts: [{ text: "You are JARVIS. Be witty. Call me Sir. Answer: " + input.value }] }] })
+                    body: JSON.stringify({ contents: [{ parts: [{ text: "You are JARVIS. Be witty. Call me Sir. Answer: " + promptText }] }] })
                 });
                 const data = await res.json();
-                box.innerHTML += `<p>Jarvis: ${data.candidates[0].content.parts[0].text}</p>`;
+                
+                if (data.error) throw new Error(data.error.message);
+                
+                const reply = data.candidates[0].content.parts[0].text;
+                box.innerHTML += `<p>Jarvis: ${reply}</p>`;
             } catch (e) {
-                box.innerHTML += `<p class="text-red-500">Error: Check API Key in Google AI Studio.</p>`;
+                box.innerHTML += `<p class="text-red-500 text-xs">Error: ${e.message}. Tap 'Update Key' above to paste a fresh one.</p>`;
             }
-            input.value = "";
             box.scrollTop = box.scrollHeight;
         }
     </script>
